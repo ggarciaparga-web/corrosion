@@ -11,55 +11,55 @@ st.set_page_config(page_title="Modelos de Corrosión", layout="wide")
 st.title("🏗️ Modelos de Corrosión de Estructuras")
 
 # =========================================================
-# BARRA LATERAL: INPUTS (Sincronizados)
+# BARRA LATERAL: INPUTS DINÁMICOS
 # =========================================================
 st.sidebar.header("⚙️ Parámetros de Entrada")
 
-# Selección del modelo
+# 1. SELECCIÓN DE ANÁLISIS
 opcion_web = st.sidebar.selectbox("Tipo de Análisis", ["Carbonatación", "Ataque por Cloruros"])
 opcion = "1" if opcion_web == "Carbonatación" else "2"
 
-# Inputs compartidos
-recubrimiento = st.sidebar.number_input("Recubrimiento [mm] (r2 / cover)", value=30.0)
+# 2. INPUTS GENERALES (Sección y Materiales)
+st.sidebar.subheader("📐 Geometría y Materiales")
+recubrimiento = st.sidebar.number_input("Recubrimiento (mm)", value=30.0)
 t_analisis = st.sidebar.slider("Tiempo total de estudio (años)", 50, 700, 250)
-i_corr_manual = st.sidebar.number_input("Intensidad de corrosión (μA/cm2) [0 = Automático]", value=0.0)
-
-st.sidebar.subheader("Geometría de la Sección")
 b_initial = st.sidebar.number_input("Ancho sección b (mm)", value=150)
 d_initial = st.sidebar.number_input("Canto útil d (mm)", value=300)
-phi1_initial = st.sidebar.number_input("Diámetro barras inferiores (mm)", value=20)
+phi1_initial = st.sidebar.number_input("Diámetro barras inf. (mm)", value=20)
 n_bottom = st.sidebar.number_input("Número de barras inferiores", value=2)
+fck = st.sidebar.number_input("Resistencia fck (MPa)", value=25)
+fy = st.sidebar.number_input("Límite elástico fy (MPa)", value=500)
 
-st.sidebar.subheader("Materiales")
-fck = st.sidebar.number_input("fck (MPa)", value=25)
-fy = st.sidebar.number_input("fy (MPa)", value=500)
-
-# =========================================================
-# BLOQUE 1: CÁLCULO DE INICIACIÓN SEGÚN EXCEL
-# =========================================================
-
+# 3. INPUTS ESPECÍFICOS SEGÚN MODELO
 if opcion == "1":
-    # Datos exactos Hoja Carbonatación
-    c_cemento = 450.0
-    cao_perc = 65.0
-    d_co2 = 2e-08
-    cs_co2 = 800.0
-    i_corr = 0.1 if i_corr_manual == 0 else i_corr_manual
-    alpha_val = 2.0
+    st.sidebar.subheader("☁️ Parámetros Carbonatación")
+    c_cemento = st.sidebar.number_input("Contenido cemento (kg/m3)", value=450.0)
+    cao_perc = st.sidebar.number_input("Contenido CaO (%)", value=65.0)
+    d_co2 = st.sidebar.number_input("Difusión D_CO2 (m2/s)", value=2e-08, format="%.2e")
+    cs_co2 = st.sidebar.number_input("Concentración Cs CO2 (mg/m3)", value=800.0)
+    i_corr = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=0.1)
+    alpha_val = st.sidebar.number_input("Factor alpha (Ataque)", value=2.0)
     
+    # Cálculo exacto Excel Carbonatación
     a_param = c_cemento * (cao_perc / 100.0) * (44.0 / 56.0) * 0.6
     cs_kg_m3 = cs_co2 / 1e6
     v_co2_seg = np.sqrt((2 * d_co2 * cs_kg_m3) / a_param) * 1000
     v_co2_año = v_co2_seg * 5600
     ti = (recubrimiento / v_co2_año)**2
     metodo_text = "Carbonatación"
+
 else:
-    # Datos exactos Hoja Cloruros
-    c_crit = 0.6; c_surf = 2.0; c_0 = 0.1
-    d_ref = 7.12e-12; n_ageing = 0.4288; t_0_cl = 0.0767
-    i_corr = 2.58 if i_corr_manual == 0 else i_corr_manual
-    alpha_val = 10.0
+    st.sidebar.subheader("🌊 Parámetros Cloruros")
+    c_crit = st.sidebar.number_input("Concentración Crítica Ccrit (%)", value=0.6)
+    c_surf = st.sidebar.number_input("Concentración Superficie Cs (%)", value=2.0)
+    c_0 = st.sidebar.number_input("Concentración Inicial C0 (%)", value=0.1)
+    d_ref = st.sidebar.number_input("Difusión D_ref (m2/s)", value=7.12e-12, format="%.2e")
+    n_ageing = st.sidebar.number_input("Factor envejecimiento n", value=0.4288)
+    t_0_cl = st.sidebar.number_input("Tiempo curado t0 (años)", value=0.0767)
+    i_corr = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=2.58)
+    alpha_val = st.sidebar.number_input("Factor alpha (Pitting)", value=10.0)
     
+    # Cálculo exacto Excel Cloruros (Iteración Fick)
     tiempos_fick = np.linspace(0.001, t_analisis, 5000)
     ti = 0; ti_encontrado = False
     for t in tiempos_fick:
@@ -72,11 +72,12 @@ else:
             ti_encontrado = True; break
     metodo_text = "Ataque por Cloruros"
 
-# Preparación de gráfica Px (común)
+# =========================================================
+# PREPARACIÓN DE GRÁFICA Px (COMÚN)
+# =========================================================
 tiempos_px = np.linspace(0, t_analisis, 1000)
 px_plot = [0.0116 * i_corr * (t - ti) if t > ti else 0.0 for t in tiempos_px]
 
-# --- Función para dibujar Px ---
 def plot_px_graph():
     fig_px, ax_px = plt.subplots(figsize=(10, 4))
     ax_px.plot(tiempos_px, px_plot, color='blue', lw=2, label='$P_x$')
@@ -90,14 +91,12 @@ def plot_px_graph():
 # =========================================================
 tab1, tab2 = st.tabs(["📊 CONTEVECT", "💻 Model Code"])
 
+# --- PESTAÑA 1: CONTEVECT ---
 with tab1:
     st.header(f"Modelo {metodo_text} (Lógica CONTEVECT)")
     st.write(f"**Tiempo de iniciación ($t_i$):** {ti:.2f} años")
-    
-    # Gráfica Px (Requerida en ambas pestañas)
     plot_px_graph()
 
-    # --- LÓGICA ESTRUCTURAL CONTEVECT ---
     def calc_mu_simple_contevect(row, fyd_val, fck_val):
         a1 = row["A1 (mm2)"]; d_act = row["d"]; b_act = row["b"]; fcd = fck_val / 1.5
         if a1 <= 0: return 0.0
@@ -122,7 +121,6 @@ with tab1:
             })
         df_base_cv = pd.DataFrame(rows_cv)
 
-        # Puntos Críticos (Exacto)
         fci = 0.333 * fck ** (2/3)
         px0_spall = max(0.0, (83.8 + 7.4 * (recubrimiento / phi1_initial) - 22.6 * fci) * 1e-3)
         
@@ -130,26 +128,25 @@ with tab1:
         def prep(r, b, d, label):
             new = r.copy(); new["b"] = b; new["d"] = d; new["label"] = label; return new
         
-        points.append(prep(df_base_cv.iloc[0], b_initial, d_initial, "Inicio Corrosión"))
+        points.append(prep(df_base_cv.iloc[0], b_initial, d_initial, "Inicio"))
         idx_px0 = (df_base_cv["Px (mm)"] >= px0_spall).idxmax()
         if df_base_cv["Px (mm)"].iloc[idx_px0] >= px0_spall:
-            points.append(prep(df_base_cv.loc[idx_px0], b_initial, d_initial, "Px0 (Fisuración)"))
+            points.append(prep(df_base_cv.loc[idx_px0], b_initial, d_initial, "Px0"))
         
         ev3, ev4 = None, None
         for _, row in df_base_cv.iterrows():
             r1, r2, px, aw = row["rho1"]*100, row["rho2"]*100, row["Px (mm)"], row["Aw (mm2)"]
             if r1 > 1.5 and aw > (0.0036 * b_initial) and px > 0.2 and ev4 is None:
-                ev4 = prep(row, b_initial - 2.0 * recubrimiento, d_initial - recubrimiento, "Evento 4 (Spalling)")
+                ev4 = prep(row, b_initial - 2.0 * recubrimiento, d_initial - recubrimiento, "Ev. 4")
             if ev3 is None:
                 if (r1 < 1.0 and r2 < 5.0 and px > 0.4) or (r1 < 1.0 and r2 > 5.0 and px > 0.2) or (r1 > 1.5 and r2 > 0.5 and px > 0.2):
-                    ev3 = prep(row, b_initial, d_initial - recubrimiento, "Evento 3 (Pérdida Rec.)")
+                    ev3 = prep(row, b_initial, d_initial - recubrimiento, "Ev. 3")
         
         if ev3 is not None: points.append(ev3)
         if ev4 is not None: points.append(ev4)
         mat_crit = pd.DataFrame(points).sort_values("Px (mm)").drop_duplicates("Px (mm)")
         mat_crit["Mu (kNm)"] = mat_crit.apply(lambda r: calc_mu_simple_contevect(r, fy/1.15, fck), axis=1)
 
-        # Continuación de matriz activa
         last = mat_crit.iloc[-1]
         rem_times = np.arange(last["Tiempo (y)"] + 1, t_end_corr + 1, 1)
         rem_rows = []
@@ -163,76 +160,70 @@ with tab1:
         df_active_cv = pd.concat([mat_crit, pd.DataFrame(rem_rows)], ignore_index=True)
         df_active_cv["TimeReal"] = df_active_cv["Tiempo (y)"] + ti
         
-        # Tramo Pasivo
-        a1_ini = (np.pi * phi1_initial**2 / 4.0) * n_bottom
-        mu_ini = calc_mu_simple_contevect({"A1 (mm2)": a1_ini, "b": b_initial, "d": d_initial}, fy/1.15, fck)
-        df_pasivo_cv = pd.DataFrame({"TimeReal": [0, ti], "Mu (kNm)": [mu_ini, mu_ini], "A1 (mm2)": [a1_ini, a1_ini]})
+        mu_ini = calc_mu_simple_contevect({"A1 (mm2)": (np.pi * phi1_initial**2 / 4.0) * n_bottom, "b": b_initial, "d": d_initial}, fy/1.15, fck)
+        df_pasivo_cv = pd.DataFrame({"TimeReal": [0, ti], "Mu (kNm)": [mu_ini, mu_ini], "A1 (mm2)": [(np.pi * phi1_initial**2 / 4.0) * n_bottom]*2})
         df_final_cv = pd.concat([df_pasivo_cv, df_active_cv], ignore_index=True)
 
         st.subheader("Capacidad y Área (CONTEVECT)")
-        col1, col2 = st.columns(2)
-        with col1:
+        c1, c2 = st.columns(2)
+        with c1:
             fig_cv1, ax_cv1 = plt.subplots()
             ax_cv1.plot(df_final_cv["TimeReal"], df_final_cv["Mu (kNm)"], color="navy", zorder=1)
-            # Marcar puntos críticos claramente
-            ax_cv1.scatter(mat_crit["Tiempo (y)"]+ti, mat_crit["Mu (kNm)"], color="red", s=50, zorder=2, label="Hitos críticos")
+            ax_cv1.scatter(mat_crit["Tiempo (y)"]+ti, mat_crit["Mu (kNm)"], color="red", s=50, zorder=2)
             for i, row in mat_crit.iterrows():
-                ax_cv1.annotate(row["label"], (row["Tiempo (y)"]+ti, row["Mu (kNm)"]), xytext=(5,5), textcoords='offset points', fontsize=8)
-            ax_cv1.set_title("Mrd vs Tiempo"); ax_cv1.set_ylabel("Mrd [kNm]"); ax_cv1.grid(True, alpha=0.3); ax_cv1.legend()
+                ax_cv1.annotate(row["label"], (row["Tiempo (y)"]+ti, row["Mu (kNm)"]), xytext=(5,5), textcoords='offset points', fontsize=9, fontweight='bold')
+            ax_cv1.set_title("Mu vs Tiempo (Hitos marcados)"); ax_cv1.grid(True, alpha=0.3)
             st.pyplot(fig_cv1)
-        with col2:
+        with c2:
             fig_cv2, ax_cv2 = plt.subplots()
             ax_cv2.plot(df_final_cv["TimeReal"], df_final_cv["A1 (mm2)"], color="darkgreen")
-            ax_cv2.set_title("Área vs Tiempo"); ax_cv2.set_ylabel("mm2"); ax_cv2.grid(True, alpha=0.3)
+            ax_cv2.set_title("Área A1 vs Tiempo"); ax_cv2.grid(True, alpha=0.3)
             st.pyplot(fig_cv2)
 
+# --- PESTAÑA 2: MODEL CODE ---
 with tab2:
     st.header("Análisis Model Code (fib 2023)")
     st.write(f"**Tiempo de iniciación ($t_i$):** {ti:.2f} años")
-    
-    # Gráfica Px (Requerida en ambas pestañas)
     plot_px_graph()
     
-    # --- LÓGICA MODEL CODE ---
     def calc_capacidad_mc(a_corr, d_act, b_act, fck_val, fy_val, r2_val):
         if a_corr <= 0: return 0.0, 0.0
         fyd_mc = fy_val / 1.15
         fcd_mc = (fck_val / 1.5) * (0.75 * min(1.0, (30.0 / fck_val) ** (1/3)))
         x_mc = (a_corr * fyd_mc) / (0.8 * b_act * fcd_mc)
         z_std = d_act - 0.4 * x_mc
-        mu_res = (a_corr * fyd_mc * z_std) / 1e6
         z_cons = max(0.0, (d_act - r2_val) - 0.4 * x_mc)
-        mu_cons = (a_corr * fyd_mc * z_cons) / 1e6
-        return max(mu_res, 0.0), max(mu_cons, 0.0)
+        return (a_corr * fyd_mc * z_std) / 1e6, (a_corr * fyd_mc * z_cons) / 1e6
 
     tiempos_mc = np.arange(0, t_analisis + 1, 1)
     a_ini_mc = (math.pi * phi1_initial ** 2 / 4.0) * n_bottom
     m_s0, m_c0 = calc_capacidad_mc(a_ini_mc, d_initial, b_initial, fck, fy, recubrimiento)
 
-    results_mc = []
+    res_mc = []
     for t in tiempos_mc:
         if t <= ti:
-            results_mc.append({"T": t, "A1": a_ini_mc, "Mu": m_s0, "MuC": m_c0})
+            res_mc.append({"T": t, "A1": a_ini_mc, "Mu": m_s0, "MuC": m_c0})
         else:
             px_mc = 0.0116 * i_corr * (t - ti)
             p_mc = max(0.0, phi1_initial - alpha_val * px_mc)
             a_mc = (math.pi * p_mc**2 / 4.0) * n_bottom
             ms, mc = calc_capacidad_mc(a_mc, d_initial, b_initial, fck, fy, recubrimiento)
-            results_mc.append({"T": t, "A1": a_mc, "Mu": ms, "MuC": mc})
+            res_mc.append({"T": t, "A1": a_mc, "Mu": ms, "MuC": mc})
     
-    df_mc = pd.DataFrame(results_mc)
+    df_mc = pd.DataFrame(res_mc)
 
-    st.subheader("Capacidad Mrd (Model Code)")
-    fig_mc_mu, ax_mc_mu = plt.subplots(figsize=(10, 4))
-    ax_mc_mu.plot(df_mc["T"], df_mc["Mu"], label="Mrd Standard", color="navy")
-    ax_mc_mu.plot(df_mc["T"], df_mc["MuC"], label="Mrd Conservador", color="orange", linestyle="--")
-    ax_mc_mu.axvline(x=ti, color="red", linestyle="--", label=f"ti={ti:.2f}y")
-    ax_mc_mu.set_ylabel("Mrd [kNm]"); ax_mc_mu.legend(); ax_mc_mu.grid(True, alpha=0.3)
-    st.pyplot(fig_mc_mu)
-
-    st.subheader("Área de Acero (Model Code)")
-    fig_mc_a, ax_mc_a = plt.subplots(figsize=(10, 4))
-    ax_mc_a.plot(df_mc["T"], df_mc["A1"], color="darkgreen", marker="o", markersize=2)
-    ax_mc_a.axvline(x=ti, color="red", linestyle="--")
-    ax_mc_a.set_ylabel("Área [$mm^2$]"); ax_mc_a.grid(True, alpha=0.3)
-    st.pyplot(fig_mc_a)
+    st.subheader("Capacidad Mrd y Área (Model Code)")
+    c3, c4 = st.columns(2)
+    with c3:
+        fig_mc_mu, ax_mc_mu = plt.subplots()
+        ax_mc_mu.plot(df_mc["T"], df_mc["Mu"], label="Standard", color="navy")
+        ax_mc_mu.plot(df_mc["T"], df_mc["MuC"], label="Conservador", color="orange", linestyle="--")
+        ax_mc_mu.axvline(x=ti, color="red", linestyle="--")
+        ax_mc_mu.legend(); ax_mc_mu.set_title("Mrd [kNm]"); ax_mc_mu.grid(True, alpha=0.3)
+        st.pyplot(fig_mc_mu)
+    with c4:
+        fig_mc_a, ax_mc_a = plt.subplots()
+        ax_mc_a.plot(df_mc["T"], df_mc["A1"], color="darkgreen")
+        ax_mc_a.axvline(x=ti, color="red", linestyle="--")
+        ax_mc_a.set_title("Área A1 [mm2]"); ax_mc_a.grid(True, alpha=0.3)
+        st.pyplot(fig_mc_a)
