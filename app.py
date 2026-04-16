@@ -32,7 +32,7 @@ fy = st.sidebar.number_input("Límite elástico fy (MPa)", value=500)
 
 # 3. INPUTS ESPECÍFICOS SEGÚN MODELO
 if opcion == "1":
-    st.sidebar.subheader("☁️ Parámetros Carbonatación")
+    st.sidebar.subheader("☁️ Parámetros")
     c_cemento = st.sidebar.number_input("Contenido cemento (kg/m3)", value=450.0)
     cao_perc = st.sidebar.number_input("Contenido CaO (%)", value=65.0)
     d_co2 = st.sidebar.number_input("Difusión D_CO2 (m2/s)", value=2e-08, format="%.2e")
