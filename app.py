@@ -19,10 +19,10 @@ st.sidebar.header("⚙️ Parámetros de Entrada")
 opcion_web = st.sidebar.selectbox("Tipo de Análisis", ["Carbonatación", "Ataque por Cloruros"])
 opcion = "1" if opcion_web == "Carbonatación" else "2"
 
-# Inputs compartidos (Sincronizados con tus códigos)
+# Inputs compartidos
 recubrimiento = st.sidebar.number_input("Recubrimiento [mm] (r2 / cover)", value=30.0)
 t_analisis = st.sidebar.slider("Tiempo total de estudio (años)", 50, 700, 250)
-i_corr_manual = st.sidebar.number_input("Intensidad de corrosión (μA/cm2) [Solo si quieres sobreescribir]", value=0.0)
+i_corr_manual = st.sidebar.number_input("Intensidad de corrosión (μA/cm2) [0 = Automático]", value=0.0)
 
 st.sidebar.subheader("Geometría de la Sección")
 b_initial = st.sidebar.number_input("Ancho sección b (mm)", value=150)
@@ -72,9 +72,18 @@ else:
             ti_encontrado = True; break
     metodo_text = "Ataque por Cloruros"
 
-# Gráfica Px común
-tiempos_px = np.linspace(0, t_analisis, 500)
+# Preparación de gráfica Px (común)
+tiempos_px = np.linspace(0, t_analisis, 1000)
 px_plot = [0.0116 * i_corr * (t - ti) if t > ti else 0.0 for t in tiempos_px]
+
+# --- Función para dibujar Px ---
+def plot_px_graph():
+    fig_px, ax_px = plt.subplots(figsize=(10, 4))
+    ax_px.plot(tiempos_px, px_plot, color='blue', lw=2, label='$P_x$')
+    ax_px.axvline(x=ti, color='red', linestyle='--', label=f'$t_i$ = {ti:.2f} años')
+    ax_px.set_title("Penetración de Corrosión ($P_x$)", fontsize=12, fontweight='bold')
+    ax_px.set_xlabel("Tiempo [años]"); ax_px.set_ylabel("Px [mm]"); ax_px.legend(); ax_px.grid(True, alpha=0.3)
+    st.pyplot(fig_px)
 
 # =========================================================
 # PESTAÑAS
@@ -84,16 +93,11 @@ tab1, tab2 = st.tabs(["📊 CONTEVECT", "💻 Model Code"])
 with tab1:
     st.header(f"Modelo {metodo_text} (Lógica CONTEVECT)")
     st.write(f"**Tiempo de iniciación ($t_i$):** {ti:.2f} años")
+    
+    # Gráfica Px (Requerida en ambas pestañas)
+    plot_px_graph()
 
-    # Gráfica 1: Px
-    fig_px, ax_px = plt.subplots(figsize=(10, 4))
-    ax_px.plot(tiempos_px, px_plot, color='blue', lw=2, label='$P_x$')
-    ax_px.axvline(x=ti, color='red', linestyle='--', label=f'$t_i$ = {ti:.2f} años')
-    ax_px.set_title("Penetración de Corrosión ($P_x$)")
-    ax_px.set_xlabel("Tiempo [años]"); ax_px.set_ylabel("Px [mm]"); ax_px.legend(); ax_px.grid(True, alpha=0.3)
-    st.pyplot(fig_px)
-
-    # --- LÓGICA ESTRUCTURAL CONTEVECT (SIN SIMPLIFICAR) ---
+    # --- LÓGICA ESTRUCTURAL CONTEVECT ---
     def calc_mu_simple_contevect(row, fyd_val, fck_val):
         a1 = row["A1 (mm2)"]; d_act = row["d"]; b_act = row["b"]; fcd = fck_val / 1.5
         if a1 <= 0: return 0.0
@@ -108,8 +112,8 @@ with tab1:
         for t in times_cv:
             px = 0.0116 * i_corr * t
             p1 = max(0.0, phi1_initial - alpha_val * px)
-            p2 = max(0.0, 20 - alpha_val * px) # phi2 fijo según tu código
-            pw = max(0.0, 0.0001 - alpha_val * px) # phiw fijo
+            p2 = max(0.0, 20 - alpha_val * px) 
+            pw = max(0.0, 0.0001 - alpha_val * px) 
             a1 = (np.pi * p1 ** 2 / 4.0) * n_bottom
             a2 = (np.pi * p2 ** 2 / 4.0); aw = (np.pi * pw ** 2 / 4.0)
             rows_cv.append({
@@ -123,29 +127,29 @@ with tab1:
         px0_spall = max(0.0, (83.8 + 7.4 * (recubrimiento / phi1_initial) - 22.6 * fci) * 1e-3)
         
         points = []
-        def prep(r, b, d):
-            new = r.copy(); new["b"] = b; new["d"] = d; return new
+        def prep(r, b, d, label):
+            new = r.copy(); new["b"] = b; new["d"] = d; new["label"] = label; return new
         
-        points.append(prep(df_base_cv.iloc[0], b_initial, d_initial))
+        points.append(prep(df_base_cv.iloc[0], b_initial, d_initial, "Inicio Corrosión"))
         idx_px0 = (df_base_cv["Px (mm)"] >= px0_spall).idxmax()
         if df_base_cv["Px (mm)"].iloc[idx_px0] >= px0_spall:
-            points.append(prep(df_base_cv.loc[idx_px0], b_initial, d_initial))
+            points.append(prep(df_base_cv.loc[idx_px0], b_initial, d_initial, "Px0 (Fisuración)"))
         
         ev3, ev4 = None, None
         for _, row in df_base_cv.iterrows():
             r1, r2, px, aw = row["rho1"]*100, row["rho2"]*100, row["Px (mm)"], row["Aw (mm2)"]
             if r1 > 1.5 and aw > (0.0036 * b_initial) and px > 0.2 and ev4 is None:
-                ev4 = prep(row, b_initial - 2.0 * recubrimiento, d_initial - recubrimiento)
+                ev4 = prep(row, b_initial - 2.0 * recubrimiento, d_initial - recubrimiento, "Evento 4 (Spalling)")
             if ev3 is None:
                 if (r1 < 1.0 and r2 < 5.0 and px > 0.4) or (r1 < 1.0 and r2 > 5.0 and px > 0.2) or (r1 > 1.5 and r2 > 0.5 and px > 0.2):
-                    ev3 = prep(row, b_initial, d_initial - recubrimiento)
+                    ev3 = prep(row, b_initial, d_initial - recubrimiento, "Evento 3 (Pérdida Rec.)")
         
         if ev3 is not None: points.append(ev3)
         if ev4 is not None: points.append(ev4)
         mat_crit = pd.DataFrame(points).sort_values("Px (mm)").drop_duplicates("Px (mm)")
         mat_crit["Mu (kNm)"] = mat_crit.apply(lambda r: calc_mu_simple_contevect(r, fy/1.15, fck), axis=1)
 
-        # Continuación
+        # Continuación de matriz activa
         last = mat_crit.iloc[-1]
         rem_times = np.arange(last["Tiempo (y)"] + 1, t_end_corr + 1, 1)
         rem_rows = []
@@ -159,7 +163,7 @@ with tab1:
         df_active_cv = pd.concat([mat_crit, pd.DataFrame(rem_rows)], ignore_index=True)
         df_active_cv["TimeReal"] = df_active_cv["Tiempo (y)"] + ti
         
-        # Pasivo
+        # Tramo Pasivo
         a1_ini = (np.pi * phi1_initial**2 / 4.0) * n_bottom
         mu_ini = calc_mu_simple_contevect({"A1 (mm2)": a1_ini, "b": b_initial, "d": d_initial}, fy/1.15, fck)
         df_pasivo_cv = pd.DataFrame({"TimeReal": [0, ti], "Mu (kNm)": [mu_ini, mu_ini], "A1 (mm2)": [a1_ini, a1_ini]})
@@ -169,19 +173,27 @@ with tab1:
         col1, col2 = st.columns(2)
         with col1:
             fig_cv1, ax_cv1 = plt.subplots()
-            ax_cv1.plot(df_final_cv["TimeReal"], df_final_cv["Mu (kNm)"], color="navy")
-            ax_cv1.set_title("Mrd vs Tiempo"); ax_cv1.grid(True, alpha=0.3)
+            ax_cv1.plot(df_final_cv["TimeReal"], df_final_cv["Mu (kNm)"], color="navy", zorder=1)
+            # Marcar puntos críticos claramente
+            ax_cv1.scatter(mat_crit["Tiempo (y)"]+ti, mat_crit["Mu (kNm)"], color="red", s=50, zorder=2, label="Hitos críticos")
+            for i, row in mat_crit.iterrows():
+                ax_cv1.annotate(row["label"], (row["Tiempo (y)"]+ti, row["Mu (kNm)"]), xytext=(5,5), textcoords='offset points', fontsize=8)
+            ax_cv1.set_title("Mrd vs Tiempo"); ax_cv1.set_ylabel("Mrd [kNm]"); ax_cv1.grid(True, alpha=0.3); ax_cv1.legend()
             st.pyplot(fig_cv1)
         with col2:
             fig_cv2, ax_cv2 = plt.subplots()
             ax_cv2.plot(df_final_cv["TimeReal"], df_final_cv["A1 (mm2)"], color="darkgreen")
-            ax_cv2.set_title("Área vs Tiempo"); ax_cv2.grid(True, alpha=0.3)
+            ax_cv2.set_title("Área vs Tiempo"); ax_cv2.set_ylabel("mm2"); ax_cv2.grid(True, alpha=0.3)
             st.pyplot(fig_cv2)
 
 with tab2:
     st.header("Análisis Model Code (fib 2023)")
+    st.write(f"**Tiempo de iniciación ($t_i$):** {ti:.2f} años")
     
-    # --- LÓGICA MODEL CODE (SIN SIMPLIFICAR) ---
+    # Gráfica Px (Requerida en ambas pestañas)
+    plot_px_graph()
+    
+    # --- LÓGICA MODEL CODE ---
     def calc_capacidad_mc(a_corr, d_act, b_act, fck_val, fy_val, r2_val):
         if a_corr <= 0: return 0.0, 0.0
         fyd_mc = fy_val / 1.15
@@ -214,13 +226,13 @@ with tab2:
     fig_mc_mu, ax_mc_mu = plt.subplots(figsize=(10, 4))
     ax_mc_mu.plot(df_mc["T"], df_mc["Mu"], label="Mrd Standard", color="navy")
     ax_mc_mu.plot(df_mc["T"], df_mc["MuC"], label="Mrd Conservador", color="orange", linestyle="--")
-    ax_mc_mu.axvline(x=ti, color="red", linestyle="--")
-    ax_mc_mu.legend(); ax_mc_mu.grid(True, alpha=0.3)
+    ax_mc_mu.axvline(x=ti, color="red", linestyle="--", label=f"ti={ti:.2f}y")
+    ax_mc_mu.set_ylabel("Mrd [kNm]"); ax_mc_mu.legend(); ax_mc_mu.grid(True, alpha=0.3)
     st.pyplot(fig_mc_mu)
 
     st.subheader("Área de Acero (Model Code)")
     fig_mc_a, ax_mc_a = plt.subplots(figsize=(10, 4))
     ax_mc_a.plot(df_mc["T"], df_mc["A1"], color="darkgreen", marker="o", markersize=2)
     ax_mc_a.axvline(x=ti, color="red", linestyle="--")
-    ax_mc_a.grid(True, alpha=0.3)
+    ax_mc_a.set_ylabel("Área [$mm^2$]"); ax_mc_a.grid(True, alpha=0.3)
     st.pyplot(fig_mc_a)
