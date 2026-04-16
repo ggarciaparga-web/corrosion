@@ -38,7 +38,9 @@ if opcion == "1":
     d_co2 = st.sidebar.number_input("Difusión D_CO2 (m2/s)", value=2e-08, format="%.2e")
     cs_co2 = st.sidebar.number_input("Concentración Cs CO2 (mg/m3)", value=800.0)
     i_corr = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=0.1)
-    alpha_val = st.sidebar.number_input("Factor alpha (Ataque)", value=2.0)
+    
+    # Alpha fijo para Carbonatación
+    alpha_val = 2.0
     
     # Cálculo exacto Excel Carbonatación
     a_param = c_cemento * (cao_perc / 100.0) * (44.0 / 56.0) * 0.6
@@ -57,7 +59,9 @@ else:
     n_ageing = st.sidebar.number_input("Factor envejecimiento n", value=0.4288)
     t_0_cl = st.sidebar.number_input("Tiempo curado t0 (años)", value=0.0767)
     i_corr = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=2.58)
-    alpha_val = st.sidebar.number_input("Factor alpha (Pitting)", value=10.0)
+    
+    # Alpha fijo para Cloruros
+    alpha_val = 10.0
     
     # Cálculo exacto Excel Cloruros (Iteración Fick)
     tiempos_fick = np.linspace(0.001, t_analisis, 5000)
