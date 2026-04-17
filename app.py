@@ -136,3 +136,4 @@ try:
 except Exception as e:
     st.error(f"Error en la conexión de módulos: {e}")
     st.info("Revisa que los archivos en /calculos devuelvan los valores correctos.")
+    st.error(f"El error exacto es: {e}")
