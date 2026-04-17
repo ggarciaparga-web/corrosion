@@ -95,7 +95,7 @@ if tipo_ataque == "Carbonatación":
     st.sidebar.subheader("☁️ Parámetros Carbonatación")
     inputs_calculo['c_cemento'] = st.sidebar.number_input("Contenido cemento (kg/m3)", value=450.0)
     inputs_calculo['cs_co2'] = st.sidebar.number_input("Concentración Cs CO2 (mg/m3)", value=800.0)
-    inputs_calculo['i_corr'] = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=0.1)
+    inputs_calculo['i_corr'] = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=1)
     i_corr_val = inputs_calculo['i_corr']
 else:
     st.sidebar.subheader("🌊 Parámetros Cloruros")
