@@ -82,42 +82,36 @@ try:
         with col2:
             # Gráfica Mrd CONTEVECT (Sin zoom)
             fig_cv, ax_cv = plt.subplots(figsize=(6, 4))
-    
-    # 1. Dibujamos la línea continua de degradación
-    ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2, label="Evolución Mrd", zorder=1)
-    
-    # 2. Identificamos los puntos críticos (Hitos de CONTEVECT)
-    # Buscamos los puntos que tienen un cambio en la geometría o los saltos en la curva
-    # Para que sea automático, buscamos filas en df_cv que vengan de df_points
-    # O simplemente marcamos los primeros 4 puntos de la simulación tras el salto
-    hitos = df_cv.drop_duplicates(subset=['b', 'd'], keep='first')
+        
+        # 1. Línea de evolución
+        ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2, zorder=1)
+        
+        # 2. Pintar los Puntos Críticos de tu lógica (Inicio, Px0, Ev3, Ev4)
+        # Ajustamos el tiempo para que sea el tiempo real (t_puntos + ti)
+        tiempos_puntos = pts_criticos["Tiempo (y)"].values
+        momentos_puntos = pts_criticos["Mu (kNm)"].values
+        
+        ax_cv.scatter(tiempos_puntos, momentos_puntos, 
+                      color='red', s=100, edgecolor='white', linewidth=1.5,
+                      label='Hitos CONTEVECT', zorder=3)
 
-    # 3. Dibujamos los puntos gordos
-    ax_cv.scatter(hitos["Tiempo (y)"], hitos["Mu (kNm)"], 
-                  color='red', 
-                  s=80,             # Tamaño del punto (más gordo)
-                  edgecolor='black', # Borde para que resalte
-                  label='Puntos Críticos',
-                  zorder=2)         # Para que queden por encima de la línea
+        # 3. Etiquetas automáticas para cada punto
+        # Tu lógica en CONTEVECT ya guarda los puntos en orden
+        labels = ["Inicio", "Fisuración ($P_{x0}$)", "Ev. 3", "Ev. 4"]
+        
+        for i, (txt, x, y) in enumerate(zip(labels, tiempos_puntos, momentos_puntos)):
+            if i < len(pts_criticos): # Por si ev3 o ev4 no han ocurrido
+                ax_cv.annotate(txt, (x, y), xytext=(5, 5), 
+                               textcoords='offset points', fontsize=8, 
+                               fontweight='bold', color='darkred')
 
-    # 4. Añadimos etiquetas de texto a esos puntos (opcional)
-    for i, row in hitos.iterrows():
-        ax_cv.annotate(f"{row['Tiempo (y)']:.0f}y", 
-                       (row["Tiempo (y)"], row["Mu (kNm)"]),
-                       textcoords="offset points", 
-                       xytext=(0,10), 
-                       ha='center', 
-                       fontsize=8, 
-                       fontweight='bold',
-                       color='darkred')
-
-    ax_cv.set_title("Mrd vs Tiempo (Hitos CONTEVECT)", fontweight='bold')
-    ax_cv.set_xlabel("Años")
-    ax_cv.set_ylabel("Mrd [kNm]")
-    ax_cv.grid(True, alpha=0.3)
-    ax_cv.legend(fontsize=8)
-    
-    st.pyplot(fig_cv)
+        ax_cv.set_title("Resistencia Residual y Puntos Críticos", fontweight='bold')
+        ax_cv.set_xlabel("Años")
+        ax_cv.set_ylabel("Mrd [kNm]")
+        ax_cv.grid(True, alpha=0.3)
+        ax_cv.legend(loc='upper right', fontsize=8)
+        
+        st.pyplot(fig_cv)
 
     with tab2:
         st.header(f"Análisis Model Code 2023")
