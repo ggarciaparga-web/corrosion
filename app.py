@@ -88,13 +88,43 @@ try:
 
     with tab2:
         st.header(f"Análisis Model Code 2023")
-        # Gráfica Mrd Model Code (Sin zoom)
+        st.write(f"**Tiempo de iniciación ($t_i$):** {ti:.2f} años")
+
+        # Fila 1: Px y Área
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            # 1. Gráfica Px vs Tiempo
+            fig_mc_px, ax_mc_px = plt.subplots(figsize=(6, 4))
+            ax_mc_px.plot(df_mc["Time"], df_mc["Px"], color="blue", lw=2)
+            ax_mc_px.axvline(x=ti, color="red", ls="--", label="ti")
+            ax_mc_px.axvline(x=t_v_mc, color="black", ls=":", label="Límite")
+            ax_mc_px.set_title("Penetración Px [mm]")
+            ax_mc_px.set_xlabel("Años")
+            ax_mc_px.grid(True, alpha=0.3)
+            st.pyplot(fig_mc_px)
+
+        with col_b:
+            # 3. Gráfica Área vs Tiempo
+            fig_mc_area, ax_mc_area = plt.subplots(figsize=(6, 4))
+            ax_mc_area.plot(df_mc["Time"], df_mc["A_corr"], color="darkgreen", lw=2)
+            ax_mc_area.axvline(x=ti, color="red", ls="--")
+            ax_mc_area.set_title("Área de Armadura [mm²]")
+            ax_mc_area.set_xlabel("Años")
+            ax_mc_area.grid(True, alpha=0.3)
+            st.pyplot(fig_mc_area)
+
+        # Fila 2: Capacidad Mrd (El que ya tenías)
+        st.subheader("Capacidad Resistente")
         fig_mc, ax_mc = plt.subplots(figsize=(10, 4))
-        ax_mc.plot(df_mc["Time"], df_mc["Mu (kNm)"], label="Estándar", color="navy")
-        ax_mc.plot(df_mc["Time"], df_mc["Mu Cons (kNm)"], label="Conservador", color="orange", ls="--")
+        ax_mc.plot(df_mc["Time"], df_mc["Mu (kNm)"], label="Estándar", color="navy", lw=2)
+        ax_mc.plot(df_mc["Time"], df_mc["Mu Cons (kNm)"], label="Conservador", color="orange", ls="--", lw=2)
         ax_mc.axvline(x=ti, color="red", ls="--", label=f"ti={ti:.1f}")
         ax_mc.axvline(x=t_v_mc, color="black", ls=":", label="Límite")
-        ax_mc.set_title("Resistencia Residual Mrd"); ax_mc.set_xlabel("Años"); ax_mc.legend(); ax_mc.grid(True, alpha=0.3)
+        ax_mc.set_title("Resistencia Residual Mrd [kNm]")
+        ax_mc.set_xlabel("Años")
+        ax_mc.legend()
+        ax_mc.grid(True, alpha=0.3)
         st.pyplot(fig_mc)
 
     with tab3:
