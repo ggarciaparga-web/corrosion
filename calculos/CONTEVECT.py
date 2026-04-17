@@ -113,4 +113,4 @@ def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
     # Tiempo exacto de la recta vertical (cuando px alcanza el límite tras ti)
     t_vertical = ti + (limite_px / (0.0116 * i_corr))
 
-    return df_final, t_vertical, limite_px
+    return df_final, t_vertical, limite_px, df_points
