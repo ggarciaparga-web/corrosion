@@ -82,9 +82,42 @@ try:
         with col2:
             # Gráfica Mrd CONTEVECT (Sin zoom)
             fig_cv, ax_cv = plt.subplots(figsize=(6, 4))
-            ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2)
-            ax_cv.set_title("Mrd vs Tiempo (CONTEVECT)"); ax_cv.set_xlabel("Años"); ax_cv.grid(True, alpha=0.3)
-            st.pyplot(fig_cv)
+    
+    # 1. Dibujamos la línea continua de degradación
+    ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2, label="Evolución Mrd", zorder=1)
+    
+    # 2. Identificamos los puntos críticos (Hitos de CONTEVECT)
+    # Buscamos los puntos que tienen un cambio en la geometría o los saltos en la curva
+    # Para que sea automático, buscamos filas en df_cv que vengan de df_points
+    # O simplemente marcamos los primeros 4 puntos de la simulación tras el salto
+    hitos = df_cv.drop_duplicates(subset=['b', 'd'], keep='first')
+
+    # 3. Dibujamos los puntos gordos
+    ax_cv.scatter(hitos["Tiempo (y)"], hitos["Mu (kNm)"], 
+                  color='red', 
+                  s=80,             # Tamaño del punto (más gordo)
+                  edgecolor='black', # Borde para que resalte
+                  label='Puntos Críticos',
+                  zorder=2)         # Para que queden por encima de la línea
+
+    # 4. Añadimos etiquetas de texto a esos puntos (opcional)
+    for i, row in hitos.iterrows():
+        ax_cv.annotate(f"{row['Tiempo (y)']:.0f}y", 
+                       (row["Tiempo (y)"], row["Mu (kNm)"]),
+                       textcoords="offset points", 
+                       xytext=(0,10), 
+                       ha='center', 
+                       fontsize=8, 
+                       fontweight='bold',
+                       color='darkred')
+
+    ax_cv.set_title("Mrd vs Tiempo (Hitos CONTEVECT)", fontweight='bold')
+    ax_cv.set_xlabel("Años")
+    ax_cv.set_ylabel("Mrd [kNm]")
+    ax_cv.grid(True, alpha=0.3)
+    ax_cv.legend(fontsize=8)
+    
+    st.pyplot(fig_cv)
 
     with tab2:
         st.header(f"Análisis Model Code 2023")
