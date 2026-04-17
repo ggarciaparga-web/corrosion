@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- IMPORTACIONES CORREGIDAS ---
 # Aquí usamos los nombres exactos de tus archivos y las funciones que hay dentro
 from calculos.tiempo_iniciacion import calcular_iniciacion
-from calculos.CONTEVECT import ejecutar_simulacion_completa
+from calculos.CONTEVECT import simulacion_completa
 from calculos.ModelCode import simulacion_total 
 
 # Configuración de página
