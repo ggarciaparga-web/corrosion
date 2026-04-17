@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy.special import erf
 
-def simulacion_total(tipo_ataque, inputs):
+def simulacion_total(tipo_ataque, inputs, ti):
+    """
+    Cálculo de resistencia residual según Model Code 2023.
+    Recibe el ti ya calculado por el módulo de iniciación.
+    """
     # 1. RECUPERAR INPUTS GENERALES
     t_end = inputs['t_analisis']
     recubrimiento = inputs['recubrimiento']
@@ -15,29 +18,13 @@ def simulacion_total(tipo_ataque, inputs):
     n_bottom = inputs['n_barras']
     r2 = inputs['r2'] # Distancia armadura superior
     
-    # Parámetros según tipo de ataque
+    # Parámetros según tipo de ataque para la propagación
     if tipo_ataque == "Carbonatación":
         alpha = 2
         limite_px_um = 0.05  # 50 µm en mm
-        # --- Cálculo de ti Carbonatación ---
-        a_param = inputs['c_cemento'] * (65 / 100.0) * (44.0 / 56.0) * 0.6
-        cs_kg_m3 = inputs['cs_co2'] / 1e6
-        d_co2 = 2e-8
-        v_co2_año = np.sqrt((2 * d_co2 * cs_kg_m3) / a_param) * 1000 * np.sqrt(31536000)
-        ti = (recubrimiento / v_co2_año)**2
     else:
         alpha = 10
         limite_px_um = 0.5   # 500 µm en mm
-        # --- Cálculo de ti Cloruros (Fick) ---
-        ti = 0
-        tiempos_fick = np.linspace(0.001, t_end, 5000)
-        for t in tiempos_fick:
-            d_cl = 7.12e-12 * (0.0767 / t)**0.4288
-            arg = (recubrimiento / 1000.0) / (2 * np.sqrt(d_cl * t * 31536000))
-            c_t = 0.1 + (2.0 - 0.1) * (1 - erf(arg))
-            if c_t >= 0.6: # Ccrit
-                ti = t
-                break
 
     # 2. SIMULACIÓN DE PROPAGACIÓN (MODEL CODE LOGIC)
     times = np.arange(0, t_end + 1, 1)
@@ -65,6 +52,7 @@ def simulacion_total(tipo_ataque, inputs):
             # Lógica Model Code fib 2023
             fyd = fy / 1.15
             fcd_nom = fck / 1.5
+            # Factor nfc basado en fck
             nfc = min(1.0, (30.0 / fck) ** (1.0 / 3.0))
             kc = 0.75 * nfc
             fcd_red = kc * fcd_nom
@@ -88,4 +76,5 @@ def simulacion_total(tipo_ataque, inputs):
             "Mu Cons (kNm)": max(mu_cons, 0.0)
         })
 
-    return pd.DataFrame(results), ti, t_vertical
+    # IMPORTANTE: Retornamos exactamente lo que app.py espera recibir
+    return pd.DataFrame(results), t_vertical
