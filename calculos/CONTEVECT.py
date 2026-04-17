@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
-from scipy.special import erf
 
 def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
     """
-    Integra la lógica de iniciación con la matriz de degradación y eventos.
+    Integra la lógica de iniciación con la matriz de degradación y eventos de CONTEVECT.
     """
     # --- 1. Parámetros desde la Interfaz ---
     t_end = inputs['t_analisis']
@@ -19,16 +18,16 @@ def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
 
     # Parámetros geométricos y materiales
     phi1_0 = inputs['phi_base']
-    phi_w0 = 0.0001 # O el que definas
+    phi_w0 = 0.0001 
     phi2_0 = 20
     n_bottom = inputs['n_barras']
     b_initial = inputs['ancho_b']
     d_initial = inputs['canto_d']
     
-    fyd = 500 / 1.15
+    fyd = inputs['fy'] / 1.15
     fci = 0.333 * fck ** (2 / 3)
 
-    # --- 2. Lógica de Simulación (Tu Matriz Base) ---
+    # --- 2. Lógica de Simulación (Matriz Base) ---
     times = np.arange(0, t_end + 1, 1)
     rows = []
 
@@ -59,7 +58,7 @@ def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
 
     df_base = pd.DataFrame(rows)
 
-    # --- 3. Cálculo de Puntos Críticos (Tu Lógica de Eventos) ---
+    # --- 3. Cálculo de Puntos Críticos (Lógica de Eventos) ---
     px0 = max(0.0, (83.8 + 7.4 * (recubrimiento / phi1_0) - 22.6 * fci) * 1e-3)
     
     def calc_mu_local(a1, b_act, d_act):
@@ -76,10 +75,12 @@ def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
     points.append(row0)
 
     # Punto de fisuración Px >= px0
-    idx_px0 = (df_base["Px (mm)"] >= px0).idxmax() if any(df_base["Px (mm)"] >= px0) else 0
-    row_px0 = df_base.loc[idx_px0].copy()
-    row_px0["b"], row_px0["d"] = b_initial, d_initial
-    points.append(row_px0)
+    mask_px0 = df_base["Px (mm)"] >= px0
+    if mask_px0.any():
+        idx_px0 = mask_px0.idxmax()
+        row_px0 = df_base.loc[idx_px0].copy()
+        row_px0["b"], row_px0["d"] = b_initial, d_initial
+        points.append(row_px0)
 
     ev3 = None
     ev4 = None
@@ -109,7 +110,7 @@ def ejecutar_simulacion_completa(tipo_ataque, inputs, ti):
     df_final = pd.concat([df_points, df_remaining], ignore_index=True)
     df_final["Mu (kNm)"] = df_final.apply(lambda r: calc_mu_local(r["A1 (mm2)"], r["b"], r["d"]), axis=1)
 
-    # Tiempo exacto de la recta vertical (cuando px alcanza el límite)
+    # Tiempo exacto de la recta vertical (cuando px alcanza el límite tras ti)
     t_vertical = ti + (limite_px / (0.0116 * i_corr))
 
     return df_final, t_vertical, limite_px
