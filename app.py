@@ -52,18 +52,22 @@ else:
 
 # --- DIBUJO DE LA SECCIÓN (ESTÁTICO) ---
 def dibujar_seccion_plt():
-    fig, ax = plt.subplots(figsize=(3, 5))
-    # Viga
-    rect = plt.Rectangle((0, 0), ancho_b, canto_d, linewidth=2, edgecolor='black', facecolor='lightgrey')
+   fig, ax = plt.subplots(figsize=(3, 5))
+    # Usa los valores del diccionario para asegurar que están actualizados
+    v_ancho = inputs_calculo['ancho_b']
+    v_canto = inputs_calculo['canto_d']
+    v_recu = inputs_calculo['recubrimiento']
+    v_n = inputs_calculo['n_barras']
+    v_phi = inputs_calculo['phi_base']
+
+    rect = plt.Rectangle((0, 0), v_ancho, v_canto, linewidth=2, edgecolor='black', facecolor='lightgrey')
     ax.add_patch(rect)
-    # Barras
-    for i in range(n_barras):
-        x_pos = (ancho_b / (n_barras + 1)) * (i + 1)
-        circ = plt.Circle((x_pos, recubrimiento), phi_base/2, color='red')
+    for i in range(int(v_n)):
+        x_pos = (v_ancho / (v_n + 1)) * (i + 1)
+        circ = plt.Circle((x_pos, v_recu), v_phi/2, color='red')
         ax.add_patch(circ)
-    ax.set_xlim(-10, ancho_b + 10); ax.set_ylim(-10, canto_d + 10)
+    ax.set_xlim(-10, v_ancho + 10); ax.set_ylim(-10, v_canto + 10)
     ax.set_aspect('equal'); ax.axis('off')
-    st.sidebar.write("### Esquema de Sección")
     st.sidebar.pyplot(fig)
 
 dibujar_seccion_plt()
