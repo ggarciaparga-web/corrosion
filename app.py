@@ -50,27 +50,7 @@ else:
     inputs_calculo['i_corr'] = st.sidebar.number_input("Intensidad i_corr (μA/cm2)", value=2.58)
     i_corr_val = inputs_calculo['i_corr']
 
-# --- DIBUJO DE LA SECCIÓN (ESTÁTICO) ---
-def dibujar_seccion_plt():
-   fig, ax = plt.subplots(figsize=(3, 5))
-    # Usa los valores del diccionario para asegurar que están actualizados
-    v_ancho = inputs_calculo['ancho_b']
-    v_canto = inputs_calculo['canto_d']
-    v_recu = inputs_calculo['recubrimiento']
-    v_n = inputs_calculo['n_barras']
-    v_phi = inputs_calculo['phi_base']
 
-    rect = plt.Rectangle((0, 0), v_ancho, v_canto, linewidth=2, edgecolor='black', facecolor='lightgrey')
-    ax.add_patch(rect)
-    for i in range(int(v_n)):
-        x_pos = (v_ancho / (v_n + 1)) * (i + 1)
-        circ = plt.Circle((x_pos, v_recu), v_phi/2, color='red')
-        ax.add_patch(circ)
-    ax.set_xlim(-10, v_ancho + 10); ax.set_ylim(-10, v_canto + 10)
-    ax.set_aspect('equal'); ax.axis('off')
-    st.sidebar.pyplot(fig)
-
-dibujar_seccion_plt()
 
 # =========================================================
 # PROCESAMIENTO Y PESTAÑAS
