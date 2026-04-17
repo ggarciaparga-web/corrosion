@@ -96,4 +96,6 @@ with tab_contevect:
 with tab_modelcode:
     fig_mu = go.Figure()
     fig_mu.add_trace(go.Scatter(x=df_modelcode["Time"], y=df_modelcode["Mu"], name="Mu Estándar"))
-    fig_mu.add_trace(go.Scatter(x=df_modelcode["
+    fig_mu.add_trace(go.Scatter(x=df_modelcode["Time"], y=df_modelcode["Mu_cons"], name="Mu Conservador", line=dict(dash='dash')))
+    fig_mu.add_vline(x=t_vert, line_color="red")
+    st.plotly_chart(fig_mu, use_container_width=True)
