@@ -76,7 +76,7 @@ tipo_ataque = st.sidebar.selectbox("Tipo de Análisis", ["Carbonatación", "Clor
 
 with st.sidebar.expander("📐 Geometría y Materiales", expanded=True):
     recubrimiento = st.sidebar.number_input("Recubrimiento (mm)", value=30.0)
-    t_analisis = st.sidebar.slider("Tiempo total de estudio (años)", 50, 500, 100)
+    t_analisis = st.sidebar.slider("Tiempo total de estudio (años)", 50, 500, 200)
     ancho_b = st.sidebar.number_input("Ancho sección b (mm)", value=150)
     canto_d = st.sidebar.number_input("Canto útil d (mm)", value=300)
     phi_base = st.sidebar.number_input("Diámetro barras inf. (mm)", value=20)
