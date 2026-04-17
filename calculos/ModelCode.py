@@ -72,6 +72,7 @@ def simulacion_total(tipo_ataque, inputs, ti):
             "Time": t,
             "Px": px,
             "phi": phi1_current,
+            "A_corr": a_corr,
             "Mu (kNm)": max(mu_res, 0.0),
             "Mu Cons (kNm)": max(mu_cons, 0.0)
         })
