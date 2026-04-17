@@ -70,48 +70,46 @@ try:
         st.write(f"**Tiempo de iniciación:** {ti:.2f} años")
         
         col1, col2 = st.columns(2)
+        
         with col1:
-            # Gráfica Px (Sin zoom)
+            # Gráfica Px
             fig_px, ax_px = plt.subplots(figsize=(6, 4))
             ax_px.plot(tiempos_px, px_plot, color='blue', lw=2, label='$P_x$')
             ax_px.axvline(x=ti, color='red', linestyle='--', label=f'$t_i$ = {ti:.2f} y')
             ax_px.axvline(x=t_v_cv, color='black', linestyle=':', label='Límite')
-            ax_px.set_title("Penetración de Corrosión"); ax_px.set_xlabel("Años"); ax_px.legend(); ax_px.grid(True, alpha=0.3)
+            ax_px.set_title("Penetración de Corrosión"); ax_px.set_xlabel("Años")
+            ax_px.legend(); ax_px.grid(True, alpha=0.3)
             st.pyplot(fig_px)
 
         with col2:
-            # Gráfica Mrd CONTEVECT (Sin zoom)
+            # Gráfica Mrd CONTEVECT (Con Hitos)
             fig_cv, ax_cv = plt.subplots(figsize=(6, 4))
-        
-        # 1. Línea de evolución
-        ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2, zorder=1)
-        
-        # 2. Pintar los Puntos Críticos de tu lógica (Inicio, Px0, Ev3, Ev4)
-        # Ajustamos el tiempo para que sea el tiempo real (t_puntos + ti)
-        tiempos_puntos = pts_criticos["Tiempo (y)"].values
-        momentos_puntos = pts_criticos["Mu (kNm)"].values
-        
-        ax_cv.scatter(tiempos_puntos, momentos_puntos, 
-                      color='red', s=100, edgecolor='white', linewidth=1.5,
-                      label='Hitos CONTEVECT', zorder=3)
+            
+            # 1. Línea de evolución continua
+            ax_cv.plot(df_cv["Tiempo (y)"], df_cv["Mu (kNm)"], color='navy', lw=2, zorder=1, label="Mrd")
+            
+            # 2. Dibujar los Puntos Críticos (Hitos)
+            # Extraemos valores de la tabla pts_criticos que devuelve CONTEVECT.py
+            t_pts = pts_criticos["Tiempo (y)"].values
+            m_pts = pts_criticos["Mu (kNm)"].values
+            
+            ax_cv.scatter(t_pts, m_pts, color='red', s=100, edgecolor='white', linewidth=1.5, zorder=3, label='Hitos')
 
-        # 3. Etiquetas automáticas para cada punto
-        # Tu lógica en CONTEVECT ya guarda los puntos en orden
-        labels = ["Inicio", "Fisuración ($P_{x0}$)", "Ev. 3", "Ev. 4"]
-        
-        for i, (txt, x, y) in enumerate(zip(labels, tiempos_puntos, momentos_puntos)):
-            if i < len(pts_criticos): # Por si ev3 o ev4 no han ocurrido
-                ax_cv.annotate(txt, (x, y), xytext=(5, 5), 
-                               textcoords='offset points', fontsize=8, 
-                               fontweight='bold', color='darkred')
+            # 3. Etiquetas de los hitos
+            labels_hitos = ["Inicio", "Fisuración", "Ev. 3", "Ev. 4"]
+            for i, (x, y) in enumerate(zip(t_pts, m_pts)):
+                if i < len(labels_hitos):
+                    ax_cv.annotate(labels_hitos[i], (x, y), xytext=(5, 5), 
+                                   textcoords='offset points', fontsize=8, 
+                                   fontweight='bold', color='darkred')
 
-        ax_cv.set_title("Resistencia Residual y Puntos Críticos", fontweight='bold')
-        ax_cv.set_xlabel("Años")
-        ax_cv.set_ylabel("Mrd [kNm]")
-        ax_cv.grid(True, alpha=0.3)
-        ax_cv.legend(loc='upper right', fontsize=8)
-        
-        st.pyplot(fig_cv)
+            ax_cv.set_title("Resistencia Residual y Puntos Críticos", fontweight='bold')
+            ax_cv.set_xlabel("Años")
+            ax_cv.set_ylabel("Mrd [kNm]")
+            ax_cv.grid(True, alpha=0.3)
+            ax_cv.legend(loc='upper right', fontsize=8)
+            st.pyplot(fig_cv)
+            
 
     with tab2:
         st.header(f"Análisis Model Code 2023")
