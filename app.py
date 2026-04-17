@@ -4,7 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # IMPORTANTE: Asegúrate de que los archivos en /calculos terminen en .py
-from calculos.tiempo_iniciacion import calcular_tiempo-iniciacion
+from calculos.tiempo_iniciacion import calcular_tiempo
 from calculos.CONTEVECT import ejecutar_CONTEVECT
 from calculos.ModelCode import ejecutar_ModelCode
 
