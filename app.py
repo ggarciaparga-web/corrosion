@@ -4,9 +4,9 @@ import numpy as np
 import plotly.graph_objects as go
 
 # IMPORTANTE: Asegúrate de que los archivos en /calculos terminen en .py
-from calculos.tiempo_iniciacion import calcular_iniciacion
-from calculos.CONTEVECT import ejecutar_contevect
-from calculos.ModelCode import ejecutar_model_code
+from calculos.tiempo_iniciacion import calcular_tiempo-iniciacion
+from calculos.CONTEVECT import ejecutar_CONTEVECT
+from calculos.ModelCode import ejecutar_ModelCode
 
 # Configuración de página
 st.set_page_config(page_title="Visor de Corrosión Estructural", layout="wide")
