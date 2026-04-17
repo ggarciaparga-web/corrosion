@@ -153,10 +153,66 @@ try:
         st.pyplot(fig_mc)
 
     with tab3:
-        st.subheader("Detalles del cálculo")
-        st.write(f"Intensidad de corrosión considerada: **{i_corr_val} μA/cm²**")
-        st.write(f"Límite vertical para {tipo_ataque}: **{lim_cv*1000:.0f} μm**")
-        st.dataframe(df_cv[["Tiempo (y)", "Px (mm)", "Mu (kNm)"]].tail(10))
+        st.subheader("Detalles de la sección")
+        def dibujar_inspeccion_2d(inputs, df_simulacion, año, px0_valor):
+    # 1. Extraer datos del año seleccionado
+    fila = df_simulacion[df_simulacion["Tiempo (y)"] == año].iloc[0]
+    px_actual = fila["Px (mm)"]
+    b_actual = fila["b"]
+    d_actual = fila["d"]
+    phi_actual = fila["phi1 (mm)"]
+    
+    # Inputs originales
+    b_0 = inputs['ancho_b']
+    d_0 = inputs['canto_d']
+    recu = inputs['recubrimiento']
+    n_b = int(inputs['n_barras'])
+    phi_0 = inputs['phi_base']
+
+    fig, ax = plt.subplots(figsize=(5, 7))
+    
+    # 2. Contorno original (Referencia fantasma)
+    rect_fantom = plt.Rectangle((0, 0), b_0, d_0, linewidth=1, 
+                                 edgecolor='gray', facecolor='none', ls=':')
+    ax.add_patch(rect_fantom)
+
+    # 3. Hormigón actual (Se encoge si hay desprendimiento)
+    off_x = (b_0 - b_actual) / 2
+    rect_h = plt.Rectangle((off_x, 0), b_actual, d_actual, 
+                            linewidth=2, edgecolor='black', facecolor='lightgrey', alpha=0.8)
+    ax.add_patch(rect_h)
+
+    # 4. FISURACIÓN: Si Px > Px0 y aún no se ha desprendido el hormigón
+    if px_actual >= px0_valor and d_actual == d_0:
+        for i in range(n_b):
+            x_f = (b_0 / (n_b + 1)) * (i + 1)
+            # Dibujamos fisuras verticales desde la barra hacia abajo
+            ax.plot([x_f, x_f], [0, recu], color='black', lw=1.5, alpha=0.7)
+            # Pequeñas ramificaciones
+            ax.plot([x_f-3, x_f+3], [recu/2, recu/2], color='black', lw=1)
+
+    # 5. Armaduras Inferiores (Reduciendo diámetro y cambiando color)
+    for i in range(n_b):
+        x_pos = (b_0 / (n_b + 1)) * (i + 1)
+        color_acero = 'red' if px_actual == 0 else '#8B4513' # Marrón óxido
+        
+        circ = plt.Circle((x_pos, recu), phi_actual/2, 
+                          facecolor=color_acero, edgecolor='black', lw=1, zorder=5)
+        ax.add_patch(circ)
+
+    ax.set_xlim(-b_0*0.1, b_0*1.1)
+    ax.set_ylim(-d_0*0.1, d_0*1.1)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    
+    estado = "SANO"
+    if px_actual >= px0_valor: estado = "FISURADO"
+    if d_actual < d_0: estado = "DESPRENDIDO"
+    
+    ax.set_title(f"AÑO {año} - ESTADO: {estado}\n$P_x$: {px_actual:.3f} mm", 
+                 fontsize=12, fontweight='bold', pad=20)
+    
+    return fig
 
 except Exception as e:
     st.error(f"Error en la conexión de módulos: {e}")
