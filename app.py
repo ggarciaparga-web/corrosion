@@ -60,7 +60,7 @@ try:
     ti, tiempos_px, px_plot = calcular_iniciacion(tipo_ataque, inputs_calculo)
 
     # 2. Ejecutamos los modelos de resistencia
-    df_cv, t_v_cv, lim_cv = ejecutar_simulacion_completa(tipo_ataque, inputs_calculo, ti)
+    df_cv, t_v_cv, lim_cv, pts_criticos = ejecutar_simulacion_completa(tipo_ataque, inputs_calculo, ti)
     df_mc, t_v_mc = simulacion_total(tipo_ataque, inputs_calculo, ti)
 
     tab1, tab2, tab3 = st.tabs(["📊 CONTEVECT", "🏗️ Model Code", "📚 Teoría"])
