@@ -177,7 +177,10 @@ try:
             st.metric("Residual moment", f"{f_sel['Mu (kNm)']:.2f} kNm")
         
         with col_render:
-            st.pyplot(draw_section_2d(inputs_calc, df_cv, year_sel, px0_val),use_container_width=False)
+            
+            fig=(draw_section_2d(inputs_calc, df_cv, year_sel, px0_val))
+            fig.set_size_inches(4, 4)
+            st.pyplot(fig, use_container_width=False)
             st.image("https://github.com/user-attachments/assets/36960bd8-5f2d-4faf-961e-e340d4b7f6a8", 
             caption="Referencia de la sección visual",
                      use_container_width=True
