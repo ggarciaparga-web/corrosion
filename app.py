@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import matplotlib as plt
 
 # --- YOUR MODULE IMPORTS ---
 from calculos.tiempo import calcular_iniciacion
