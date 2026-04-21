@@ -165,40 +165,41 @@ try:
         ax_mc.set_title("Residual resistance Mrd [kNm]"); ax_mc.legend(); ax_mc.grid(True, alpha=0.3)
         st.pyplot(fig_mc)
 
+    
     with tab3:
-        st.header("🔍 Visual section inspection")
+    st.header("🔍 Visual section inspection")
     
-    # 1. Slider a todo lo ancho arriba para que sea fácil de usar
-        year_sel = st.select_slider("Select year", options=list(df_cv["Tiempo (y)"]), value=0)
-        f_sel = df_cv[df_cv["Tiempo (y)"] == year_sel].iloc[0]
+    # --- RECALCULA O DEFINE AQUÍ LA VARIABLE ---
+    # Asegúrate de que fck, recubrimiento y phi_base vengan de tus inputs
+    fci_val = 0.333 * inputs_calc["fck"] ** (2 / 3)
+    px0_val = max(0.0, (83.8 + 7.4 * (inputs_calc["recubrimiento"] / inputs_calc["phi_base"]) - 22.6 * fci_val) * 1e-3)
     
-        st.divider() # Una línea sutil para separar el control del contenido
+    # Ahora el Slider
+    year_sel = st.select_slider("Select year", options=list(df_cv["Tiempo (y)"]), value=0)
+    f_sel = df_cv[df_cv["Tiempo (y)"] == year_sel].iloc[0]
+    
+    st.divider()
 
-    # 2. Creamos 3 columnas con proporciones equilibradas
-    # Col 1: Métrica Px | Col 2: Dibujos | Col 3: Métrica Mu
-        col_px, col_draw, col_mu = st.columns([1, 1.2, 1])
+    # Columnas para organizar el desorden visual
+    col_px, col_draw, col_mu = st.columns([1, 1.2, 1])
 
-        with col_px:
-            st.metric("Penetration Px", f"{f_sel['Px (mm)']:.3f} mm")
-        # Espacio opcional para separar
-            st.write("") 
+    with col_px:
+        st.metric("Penetration Px", f"{f_sel['Px (mm)']:.3f} mm")
 
-        with col_draw:
-        # Dibujo dinámico (el que cambia)
-            fig = draw_section_2d(inputs_calc, df_cv, year_sel, px0_val)
-            fig.set_size_inches(2, 2.5) # Ajustamos para que no sea minúsculo pero sí contenido
-            st.pyplot(fig, use_container_width=False)
+    with col_draw:
+        # Aquí ya no dará error porque px0_val se definió arriba
+        fig = draw_section_2d(inputs_calc, df_cv, year_sel, px0_val)
+        fig.set_size_inches(2, 2.5) 
+        st.pyplot(fig, use_container_width=False)
         
-        # Imagen de referencia justo debajo o encima
-            st.image("https://github.com/user-attachments/assets/36960bd8-5f2d-4faf-961e-e340d4b7f6a8", 
+        st.image("https://github.com/user-attachments/assets/36960bd8-5f2d-4faf-961e-e340d4b7f6a8", 
                  caption="Reference section",
                  use_container_width=True)
 
-        with col_mu:
-        # Alineamos la métrica de momento residual a la derecha
-            st.metric("Residual moment", f"{f_sel['Mu (kNm)']:.2f} kNm")
-
-        st.divider()
+    with col_mu:
+        st.metric("Residual moment", f"{f_sel['Mu (kNm)']:.2f} kNm")
+        
+       
     
     with tab4:
         st.header("🧪 Corrosion zone sensitivity")
