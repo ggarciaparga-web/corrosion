@@ -9,7 +9,7 @@ from calculos.CONTEVECT import ejecutar_simulacion_completa as ejecutar_cv_base
 from calculos.ModelCode import simulacion_total
 
 # NEW: localized corrosion options (your new file)
-from calculos.opciones_corrosion import ejecutar_simulacion_completa as ejecutar_cv_opciones
+from calculos.opciones_corrosion import ejecutar_simulacion_corrosion_zona as ejecutar_cv_opciones
 
 
 st.set_page_config(page_title="Structural Corrosion Viewer", layout="wide")
