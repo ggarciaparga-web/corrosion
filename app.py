@@ -69,10 +69,10 @@ with st.sidebar.expander("📐 Geometry and Materials", expanded=True):
     r2 = st.sidebar.number_input("Top cover r2 (mm)", value=20)
 
 with st.sidebar.expander("🏗️ Prestressing Parameters"):
-    fpu_pres = st.sidebar.number_input("Prestressing fpu (MPa)", value=1896.0)
-    d_prima_pres = st.sidebar.number_input("Prestress depth d' (mm)", value=240.0)
-    n_pres = st.sidebar.number_input("Nº elements", value=2)
-    phi0_pres = st.sidebar.number_input("Diameter (mm)", value=20.0)
+    fpu_pres = st.number_input("Prestressing fpu (MPa)", value=1896.0)
+    d_prima_pres = st.number_input("Prestress depth d' (mm)", value=240.0)
+    n_pres = st.number_input("Nº elements", value=2)
+    phi0_pres = st.number_input("Diameter (mm)", value=20.0)
 
 # Construcción de diccionario de inputs
 inputs_calc = {
