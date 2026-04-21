@@ -185,7 +185,7 @@ try:
 
     with tab4:
         st.header("🧪 Corrosion zone sensitivity")
-        zone = st.radio("Corrosion zone", options=["tension", "compression", "both"], index=2)
+        zone = st.radio("Corrosion zone", options=["tension", "compression"], index=0)
         df_opt, _, _, _ = run_cv_options(analysis_type, inputs_calc, ti, zone)
         fig_opt, ax_opt = plt.subplots(figsize=(10, 4))
         ax_opt.plot(df_opt["Tiempo (y)"], df_opt["Mu (kNm)"], color="navy", lw=2)
