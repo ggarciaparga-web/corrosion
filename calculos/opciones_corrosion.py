@@ -187,6 +187,6 @@ def ejecutar_simulacion_corrosion_zona(tipo_ataque, inputs, ti, corrosion_zone=N
     t_vertical = ti + (limite_px / (0.0116 * i_corr)) if i_corr > 0 else np.inf
 
     return df_final, t_vertical, limite_px, df_points
-``
+
 
 
