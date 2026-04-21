@@ -190,7 +190,7 @@ try:
     with tab5:
         st.header("⚙️ Prestress Concrete Stresses")
         # Llamada al módulo externo
-        df_pres = calcular_tensiones_pretensado(inputs_calc, ti, inputs_calc["i_corr"], alpha_pit)
+        df_pres = ejecutar_simulacion_pretensado(inputs_calc, ti, inputs_calc["i_corr"], alpha_pit)
     
         
         # Gráfica de Tensiones solicitada
