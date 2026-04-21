@@ -58,15 +58,15 @@ st.sidebar.header("⚙️ Input Parameters")
 analysis_type = st.sidebar.selectbox("Analysis Type", ["Carbonatación", "Cloruros"])
 
 with st.sidebar.expander("📐 Geometry and Materials", expanded=True):
-    cover_mm = st.sidebar.number_input("Concrete cover (mm)", value=30.0)
-    t_analysis = st.sidebar.slider("Total analysis time (years)", 50, 700, 250)
-    width_b = st.sidebar.number_input("Section width b (mm)", value=150)
-    depth_d = st.sidebar.number_input("Effective depth d (mm)", value=300)
-    phi_base = st.sidebar.number_input("Bottom bar diameter (mm)", value=20)
-    n_bars = st.sidebar.number_input("Number of bottom bars", value=2)
-    fck = st.sidebar.number_input("Concrete strength fck (MPa)", value=25)
-    fy = st.sidebar.number_input("Steel yield fy (MPa)", value=500)
-    r2 = st.sidebar.number_input("Top cover r2 (mm)", value=20)
+    cover_mm = st.number_input("Concrete cover (mm)", value=30.0)
+    t_analysis = st.slider("Total analysis time (years)", 50, 700, 250)
+    width_b = st.number_input("Section width b (mm)", value=150)
+    depth_d = st.number_input("Effective depth d (mm)", value=300)
+    phi_base = st.number_input("Bottom bar diameter (mm)", value=20)
+    n_bars = st.number_input("Number of bottom bars", value=2)
+    fck = st.number_input("Concrete strength fck (MPa)", value=25)
+    fy = st.number_input("Steel yield fy (MPa)", value=500)
+    r2 = st.number_input("Top cover r2 (mm)", value=20)
 
 with st.sidebar.expander("🏗️ Prestressing Parameters"):
     fpu_pres = st.number_input("Prestressing fpu (MPa)", value=1896.0)
@@ -93,9 +93,9 @@ inputs_calc = {
 
 if analysis_type == "Carbonatación":
     st.sidebar.subheader("☁️ Carbonation Parameters")
-    inputs_calc["c_cemento"] = st.sidebar.number_input("Cement content (kg/m3)", value=450.0)
-    inputs_calc["cs_co2"] = st.sidebar.number_input("CO2 concentration Cs (mg/m3)", value=800.0)
-    inputs_calc["i_corr"] = st.sidebar.number_input("i_corr (μA/cm²)", value=1.0)
+    inputs_calc["c_cemento"] = st.number_input("Cement content (kg/m3)", value=450.0)
+    inputs_calc["cs_co2"] = st.number_input("CO2 concentration Cs (mg/m3)", value=800.0)
+    inputs_calc["i_corr"] = st.number_input("i_corr (μA/cm²)", value=1.0)
     alpha_pit = 2.0
 else:
     st.sidebar.subheader("🌊 Chlorides Parameters")
