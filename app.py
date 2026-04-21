@@ -93,9 +93,9 @@ inputs_calc = {
 
 if analysis_type == "Carbonatación":
     st.sidebar.subheader("☁️ Carbonation Parameters")
-    inputs_calc["c_cemento"] = st.number_input("Cement content (kg/m3)", value=450.0)
-    inputs_calc["cs_co2"] = st.number_input("CO2 concentration Cs (mg/m3)", value=800.0)
-    inputs_calc["i_corr"] = st.number_input("i_corr (μA/cm²)", value=1.0)
+    inputs_calc["c_cemento"] = st.sidebar.number_input("Cement content (kg/m3)", value=450.0)
+    inputs_calc["cs_co2"] = st.sidebar.number_input("CO2 concentration Cs (mg/m3)", value=800.0)
+    inputs_calc["i_corr"] = st.sidebar.number_input("i_corr (μA/cm²)", value=1.0)
     alpha_pit = 2.0
 else:
     st.sidebar.subheader("🌊 Chlorides Parameters")
