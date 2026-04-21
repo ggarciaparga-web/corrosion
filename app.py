@@ -175,8 +175,7 @@ try:
             f_sel = df_cv[df_cv["Tiempo (y)"] == year_sel].iloc[0]
             st.metric("Penetration Px", f"{f_sel['Px (mm)']:.3f} mm")
             st.metric("Residual moment", f"{f_sel['Mu (kNm)']:.2f} kNm")
-        with col_render:
-            st.pyplot(draw_section_2d(inputs_calc, df_cv, year_sel, px0_val))
+        
         with col_render:
             st.pyplot(draw_section_2d(inputs_calc, df_cv, year_sel, px0_val))
             st.image("https://github.com/user-attachments/assets/36960bd8-5f2d-4faf-961e-e340d4b7f6a8", 
