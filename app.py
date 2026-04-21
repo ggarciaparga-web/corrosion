@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from calculos.tiempo import calcular_iniciacion
 from calculos.CONTEVECT import ejecutar_simulacion_completa as ejecutar_cv_base
 from calculos.ModelCode import simulacion_total
+from calculos.pretensado import ejecutar_simulacion_pretensado
 
 # NEW: localized corrosion options (your new file)
 from calculos.opciones_corrosion import ejecutar_simulacion_corrosion_zona as ejecutar_cv_opciones
@@ -112,6 +113,11 @@ with st.sidebar.expander("📐 Geometry and Materials", expanded=True):
     fck = st.sidebar.number_input("Concrete strength fck (MPa)", value=25)
     fy = st.sidebar.number_input("Steel yield fy (MPa)", value=500)
     r2 = st.sidebar.number_input("Top cover r2 (mm)", value=20)
+with st.sidebar.expander("🏗️ Prestressing Parameters"):
+    inputs_calc["fpu_prestress"] = st.number_input("Prestressing fpu (MPa)", value=1896.0)
+    inputs_calc["d_prima_prestress"] = st.number_input("Prestress depth d' (mm)", value=240.0)
+    inputs_calc["n_prestress"] = st.number_input("Nº elements", value=2)
+    inputs_calc["phi0_prestress"] = st.number_input("Diameter (mm)", value=20.0)
 
 inputs_calc = {
     "t_analisis": t_analysis,
@@ -388,6 +394,21 @@ try:
                 m3.metric("Mu", f"{row_opt['Mu (kNm)']:.2f} kNm")
 
                 st.dataframe(df_opt, use_container_width=True)
+    with tab5:
+    st.header("⚙️ Prestress Concrete Stresses")
+    
+    # LLAMADA A LA FUNCIÓN DE LA OTRA HOJA .py
+    df_pres = ejecutar_simulacion_pretensado(inputs_calc, ti, inputs_calc["i_corr"], alpha_pit)
+    
+    # Gráfica de Tensiones (usando los datos que devolvió la función externa)
+    fig_pres, ax_pres = plt.subplots(figsize=(10, 5))
+    ax_pres.plot(df_pres["time"], df_pres["sigma_inferior"], label="Bottom stress", color="blue")
+    ax_pres.plot(df_pres["time"], df_pres["sigma_superior"], label="Top stress", color="orange")
+    ax_pres.axvline(x=ti, color="red", linestyle="--", label="Initiation")
+    ax_pres.set_title("Evolution of Prestress Stresses (External Module)")
+    ax_pres.set_ylabel("Stress [MPa]")
+    ax_pres.legend()
+    st.pyplot(fig_pres)
 
 except Exception as exc:
     st.error(f"Error detected: {exc}")
