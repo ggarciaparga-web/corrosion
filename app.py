@@ -10,7 +10,7 @@ from calculos.tiempo import calcular_iniciacion
 from calculos.CONTEVECT import ejecutar_simulacion_completa as ejecutar_cv_base
 from calculos.ModelCode import simulacion_total
 from calculos.opciones_corrosion import ejecutar_simulacion_corrosion_zona as ejecutar_cv_opciones
-from calculos.pretensado import calcular_tensiones_pretensado
+from calculos.pretensado import ejecutar_simulacion_pretensado
 
 # CONFIGURACIÓN DE PÁGINA
 st.set_page_config(page_title="Structural Corrosion Viewer", layout="wide")
