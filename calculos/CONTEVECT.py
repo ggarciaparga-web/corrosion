@@ -267,4 +267,4 @@ def ejecutar_simulacion_completa_actualizada_en_tiempo(
     t_vertical = ti + limite_px / (0.0116 * i_corr)
 
     return df_time, t_vertical, limite_px, df_events
-``
+
