@@ -56,9 +56,7 @@ class RectangularSection(Geometry):
         if as_t_mm2 <= 0.0:
             return 0.0
 
-        x = (as_t_mm2 * materials.fyd) / (
-            0.8 * self.b_mm * materials.fcd
-        )
+        x = (as_t_mm2 * materials.fyd) / (0.8 * self.b_mm * materials.fcd)
         z = d_mm - 0.4 * x
         mu = as_t_mm2 * materials.fyd * z
         return max(mu / 1e6, 0.0)
@@ -118,11 +116,8 @@ class ISection(Geometry):
         if as_t_mm2 <= 0.0:
             return 0.0
 
-        # Conservative: compression only in top flange
         b_eff = self.b_top_mm
-        x = (as_t_mm2 * materials.fyd) / (
-            0.8 * b_eff * materials.fcd
-        )
+        x = (as_t_mm2 * materials.fyd) / (0.8 * b_eff * materials.fcd)
         z = d_mm - 0.4 * x
         mu = as_t_mm2 * materials.fyd * z
         return max(mu / 1e6, 0.0)
@@ -242,19 +237,18 @@ def ejecutar_simulacion_completa_actualizada_en_tiempo(
         aw = np.pi * pw**2 / 4.0
 
         rho1 = a1 / ref_area
-        rho2 = a2 / ref_area
 
         if px >= px0 and not any(e["event"] == "cracking" for e in events):
-            events.append({"Time (y)": t, "event": "cracking"})
+            events.append({"Time (y)": float(t), "event": "cracking"})
 
         rows.append(
             {
-                "Tiempo (y)": t,
-                "Px (mm)": px,
-                "phi1 (mm)": p1,
-                "A1 (mm2)": a1,
-                "rho1": rho1,
-                "d (mm)": d_mm,
+                "Time (y)": float(t),
+                "Px (mm)": float(px),
+                "phi1 (mm)": float(p1),
+                "A1 (mm2)": float(a1),
+                "rho1": float(rho1),
+                "d (mm)": float(d_mm),
                 "Mu (kNm)": geom.moment_capacity_kNm(
                     a1, a2, d_mm, d2_mm, materials
                 ),
@@ -264,7 +258,6 @@ def ejecutar_simulacion_completa_actualizada_en_tiempo(
     df_time = pd.DataFrame(rows)
     df_events = pd.DataFrame(events)
 
-    t_vertical = ti + limite_px / (0.0116 * i_corr)
+    t_vertical = float(ti + limite_px / (0.0116 * i_corr))
 
     return df_time, t_vertical, limite_px, df_events
-
