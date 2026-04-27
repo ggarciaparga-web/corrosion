@@ -12,14 +12,17 @@ from calculos.CONTEVECT import ejecutar_simulacion_completa_actualizada_en_tiemp
 from calculos.ModelCode import simulacion_total
 
 
+# =========================================================
+# PAGE CONFIG
+# =========================================================
 st.set_page_config(page_title="Structural Corrosion Viewer", layout="wide")
 st.title("🏗️ Structural Corrosion Models")
 
 
+# =========================================================
+# HELPERS
+# =========================================================
 def freeze_inputs(inputs: Dict[str, Any]) -> Tuple[Tuple[str, Any], ...]:
-    """
-    Convert inputs dict to an immutable, hashable tuple for Streamlit caching.
-    """
     frozen = []
     for k, v in inputs.items():
         if isinstance(v, (int, float)):
@@ -33,12 +36,21 @@ def unfreeze_inputs(frozen: Tuple[Tuple[str, Any], ...]) -> Dict[str, Any]:
     return {k: v for k, v in frozen}
 
 
+def normalize_time_column(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    if "Time (y)" not in df.columns and "Tiempo (y)" in df.columns:
+        df.rename(columns={"Tiempo (y)": "Time (y)"}, inplace=True)
+    return df
+
+
 # =========================================================
-# SIDEBAR INPUTS
+# SIDEBAR – INPUTS
 # =========================================================
 st.sidebar.header("⚙️ Input Parameters")
 
-analysis_type = st.sidebar.selectbox("Analysis Type", ["Carbonatación", "Cloruros"])
+analysis_type = st.sidebar.selectbox(
+    "Analysis Type", ["Carbonatación", "Cloruros"]
+)
 
 with st.sidebar.expander("📐 Geometry and Materials", expanded=True):
     geometry_type = st.sidebar.selectbox(
@@ -110,7 +122,7 @@ else:
 
 
 # =========================================================
-# CACHED RUNS (CACHE BUG FIXED)
+# CACHED RUNS
 # =========================================================
 @st.cache_data(show_spinner=False)
 def run_contevect_cached(
@@ -118,9 +130,11 @@ def run_contevect_cached(
     gtype: str,
     frozen_inputs: Tuple[Tuple[str, Any], ...],
     ti: float,
-) -> Tuple[pd.DataFrame, float, float, pd.DataFrame]:
+):
     inputs = unfreeze_inputs(frozen_inputs)
-    return ejecutar_simulacion_completa_actualizada_en_tiempo(atype, inputs, ti)
+    return ejecutar_simulacion_completa_actualizada_en_tiempo(
+        atype, inputs, ti
+    )
 
 
 @st.cache_data(show_spinner=False)
@@ -129,7 +143,7 @@ def run_model_code_cached(
     gtype: str,
     frozen_inputs: Tuple[Tuple[str, Any], ...],
     ti: float,
-) -> Tuple[pd.DataFrame, float]:
+):
     inputs = unfreeze_inputs(frozen_inputs)
     return simulacion_total(atype, inputs, ti)
 
@@ -145,7 +159,12 @@ try:
     df_cv, t_v_cv, lim_cv, df_events = run_contevect_cached(
         analysis_type, geometry_type, frozen, ti
     )
-    df_mc, t_v_mc = run_model_code_cached(analysis_type, geometry_type, frozen, ti)
+    df_mc, t_v_mc = run_model_code_cached(
+        analysis_type, geometry_type, frozen, ti
+    )
+
+    df_cv = normalize_time_column(df_cv)
+    df_mc = normalize_time_column(df_mc)
 
     tab1, tab2, tab3 = st.tabs(["📊 CONTEVECT", "🏗️ Model Code", "🧾 Events"])
 
@@ -164,7 +183,12 @@ try:
     with tab2:
         fig, ax = plt.subplots(figsize=(9, 4))
         ax.plot(df_mc["Time (y)"], df_mc["Mu (kNm)"], label="Model Code")
-        ax.plot(df_mc["Time (y)"], df_mc["Mu Cons (kNm)"], linestyle="--", label="Conservative")
+        ax.plot(
+            df_mc["Time (y)"],
+            df_mc["Mu Cons (kNm)"],
+            linestyle="--",
+            label="Conservative",
+        )
         ax.axvline(t_v_mc, linestyle="--", color="red", label="Vertical line")
         ax.set_xlabel("Years")
         ax.set_ylabel("Mu (kNm)")
