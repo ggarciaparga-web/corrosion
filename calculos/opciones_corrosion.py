@@ -9,12 +9,7 @@ def ejecutar_simulacion_corrosion_zona(tipo_ataque, inputs, ti, corrosion_zone=N
       - "compression": only phi2 and phiw reduce
       - "both": phi1, phi2, phiw reduce
 
-    Key fixes vs. your current version:
-      1) Removes HTML entities (&lt; &gt;) that break Python.
-      2) Corrects the return variable (df_points).
-      3) Applies b/d reductions as PIECEWISE CONSTANT over ALL years after events
-         (your previous approach only changed geometry at the event rows + after last event).
-      4) Makes phi_w0 configurable (your phi_w0=0.0001 mm makes Aw ~ 0 always, so Event 4 never triggers).
+     
     """
     zone = (corrosion_zone or inputs.get("corrosion_zone", "both")).strip().lower()
     if zone not in {"tension", "compression", "both"}:
@@ -34,7 +29,7 @@ def ejecutar_simulacion_corrosion_zona(tipo_ataque, inputs, ti, corrosion_zone=N
     phi1_0 = float(inputs["phi_base"])
     phi2_0 = float(inputs.get("phi2_0", 20.0))
 
-    # IMPORTANT: if you keep 0.0001 mm, Aw is ~0 and Event 4 condition will never be met.
+    # IMPORTANT:  0.0001 mm, Aw is ~0 and Event 4 condition will never be met.
     # Use a realistic stirrup diameter (e.g., 6–10 mm), or provide it from the UI as inputs["phi_w0"].
     phi_w0 = float(inputs.get("phi_w0", 8.0))
 
